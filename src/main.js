@@ -1,15 +1,15 @@
-var canvas = document.getElementById("drawing-board");
-var ctx = canvas.getContext("2d");
-var eraser = document.getElementById("eraser");
-var brush = document.getElementById("brush");
-var reSetCanvas = document.getElementById("clear");
-var save = document.getElementById("save");
-var undo = document.getElementById("undo");
-var range = document.getElementById("range");
-var clear = false;
-var aColorBtn = document.getElementsByClassName("color-item");
-var activeColor = 'black';
-var lWidth = 4;
+let canvas = document.getElementById("drawing-board");
+let ctx = canvas.getContext("2d");
+let eraser = document.getElementById("eraser");
+let brush = document.getElementById("brush");
+let reSetCanvas = document.getElementById("clear");
+let aColorBtn = document.getElementsByClassName("color-item");
+let save = document.getElementById("save");
+let undo = document.getElementById("undo");
+let range = document.getElementById("range");
+let clear = false;
+let activeColor = 'black';
+let lWidth = 4;
 
 autoSetSize(canvas);
 
@@ -19,16 +19,16 @@ listenToUser(canvas);
 
 getColor();
 
-window.onbeforeunload = function(e){
+window.onbeforeunload = function(){
   return "Reload site?";
-}
+};
 
 function autoSetSize(canvas) {
   canvasSetSize();
 
   function canvasSetSize() {
-    var pageWidth = document.documentElement.clientWidth;
-    var pageHeight = document.documentElement.clientHeight;
+    let pageWidth = document.documentElement.clientWidth;
+    let pageHeight = document.documentElement.clientHeight;
 
     canvas.width = pageWidth;
     canvas.height = pageHeight;
@@ -51,13 +51,15 @@ function listenToUser(canvas) {
 
   if (document.body.ontouchstart !== undefined) {
     canvas.ontouchstart = function (e) {
+      this.firstDot = ctx.getImageData(0, 0, canvas.width, canvas.height);//在这里储存绘图表面
+      saveData(this.firstDot);
       painting = true;
       let x = e.touches[0].clientX;
       let y = e.touches[0].clientY;
       lastPoint = {"x": x, "y": y};
       ctx.save();
       drawCircle(x, y, 0);
-    }
+    };
     canvas.ontouchmove = function (e) {
       if (painting) {
         let x = e.touches[0].clientX;
@@ -66,32 +68,37 @@ function listenToUser(canvas) {
         drawLine(lastPoint.x, lastPoint.y, newPoint.x, newPoint.y);
         lastPoint = newPoint;
       }
-    }
+    };
 
-    canvas.ontouchend = function (e) {
+    canvas.ontouchend = function () {
       painting = false;
     }
   } else {
     canvas.onmousedown = function (e) {
+      this.firstDot = ctx.getImageData(0, 0, canvas.width, canvas.height);//在这里储存绘图表面
+      saveData(this.firstDot);
       painting = true;
       let x = e.clientX;
       let y = e.clientY;
       lastPoint = {"x": x, "y": y};
       ctx.save();
       drawCircle(x, y, 0);
-    }
+    };
     canvas.onmousemove = function (e) {
       if (painting) {
         let x = e.clientX;
         let y = e.clientY;
         let newPoint = {"x": x, "y": y};
-        // drawCircle(x, y, lWidth);
         drawLine(lastPoint.x, lastPoint.y, newPoint.x, newPoint.y,clear);
         lastPoint = newPoint;
       }
-    }
+    };
 
-    canvas.onmouseup = function (e) {
+    canvas.onmouseup = function () {
+      painting = false;
+    };
+
+    canvas.mouseleave = function () {
       painting = false;
     }
   }
@@ -133,38 +140,39 @@ function drawLine(x1, y1, x2, y2) {
 
 range.onchange = function(){
   lWidth = this.value;
-}
+};
 
 eraser.onclick = function () {
   clear = true;
   this.classList.add("active");
   brush.classList.remove("active");
-}
+};
 
 brush.onclick = function () {
   clear = false;
   this.classList.add("active");
   eraser.classList.remove("active");
-}
+};
 
 reSetCanvas.onclick = function () {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
+  setCanvasBg('white');
+};
 
 save.onclick = function () {
-  var imgUrl = canvas.toDataURL("image/png");
-  var saveA = document.createElement("a");
+  let imgUrl = canvas.toDataURL("image/png");
+  let saveA = document.createElement("a");
   document.body.appendChild(saveA);
   saveA.href = imgUrl;
   saveA.download = "zspic" + (new Date).getTime();
   saveA.target = "_blank";
   saveA.click();
-}
+};
 
 function getColor(){
-  for (var i = 0; i < aColorBtn.length; i++) {
+  for (let i = 0; i < aColorBtn.length; i++) {
     aColorBtn[i].onclick = function () {
-      for (var i = 0; i < aColorBtn.length; i++) {
+      for (let i = 0; i < aColorBtn.length; i++) {
         aColorBtn[i].classList.remove("active");
         this.classList.add("active");
         activeColor = this.style.backgroundColor;
@@ -175,4 +183,15 @@ function getColor(){
   }
 }
 
-// var historyUndo = [];
+let historyDeta = [];
+
+function saveData (data) {
+  (historyDeta.length === 10) && (historyDeta.shift());// 上限为储存10步，太多了怕挂掉
+  historyDeta.push(data);
+}
+
+undo.onclick = function(){
+  if(historyDeta.length < 1) return false;
+  ctx.putImageData(historyDeta[historyDeta.length - 1], 0, 0);
+  historyDeta.pop()
+};
