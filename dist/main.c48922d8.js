@@ -109,11 +109,11 @@ var ctx = canvas.getContext("2d");
 var eraser = document.getElementById("eraser");
 var brush = document.getElementById("brush");
 var reSetCanvas = document.getElementById("clear");
+var aColorBtn = document.getElementsByClassName("color-item");
 var save = document.getElementById("save");
 var undo = document.getElementById("undo");
 var range = document.getElementById("range");
 var clear = false;
-var aColorBtn = document.getElementsByClassName("color-item");
 var activeColor = 'black';
 var lWidth = 4;
 
@@ -125,7 +125,7 @@ listenToUser(canvas);
 
 getColor();
 
-window.onbeforeunload = function (e) {
+window.onbeforeunload = function () {
   return "Reload site?";
 };
 
@@ -157,6 +157,8 @@ function listenToUser(canvas) {
 
   if (document.body.ontouchstart !== undefined) {
     canvas.ontouchstart = function (e) {
+      this.firstDot = ctx.getImageData(0, 0, canvas.width, canvas.height); //在这里储存绘图表面
+      saveData(this.firstDot);
       painting = true;
       var x = e.touches[0].clientX;
       var y = e.touches[0].clientY;
@@ -174,11 +176,13 @@ function listenToUser(canvas) {
       }
     };
 
-    canvas.ontouchend = function (e) {
+    canvas.ontouchend = function () {
       painting = false;
     };
   } else {
     canvas.onmousedown = function (e) {
+      this.firstDot = ctx.getImageData(0, 0, canvas.width, canvas.height); //在这里储存绘图表面
+      saveData(this.firstDot);
       painting = true;
       var x = e.clientX;
       var y = e.clientY;
@@ -191,13 +195,16 @@ function listenToUser(canvas) {
         var x = e.clientX;
         var y = e.clientY;
         var newPoint = { "x": x, "y": y };
-        // drawCircle(x, y, lWidth);
         drawLine(lastPoint.x, lastPoint.y, newPoint.x, newPoint.y, clear);
         lastPoint = newPoint;
       }
     };
 
-    canvas.onmouseup = function (e) {
+    canvas.onmouseup = function () {
+      painting = false;
+    };
+
+    canvas.mouseleave = function () {
       painting = false;
     };
   }
@@ -255,6 +262,7 @@ brush.onclick = function () {
 
 reSetCanvas.onclick = function () {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  setCanvasBg('white');
 };
 
 save.onclick = function () {
@@ -270,8 +278,8 @@ save.onclick = function () {
 function getColor() {
   for (var i = 0; i < aColorBtn.length; i++) {
     aColorBtn[i].onclick = function () {
-      for (var i = 0; i < aColorBtn.length; i++) {
-        aColorBtn[i].classList.remove("active");
+      for (var _i = 0; _i < aColorBtn.length; _i++) {
+        aColorBtn[_i].classList.remove("active");
         this.classList.add("active");
         activeColor = this.style.backgroundColor;
         ctx.fillStyle = activeColor;
@@ -281,7 +289,18 @@ function getColor() {
   }
 }
 
-// var historyUndo = [];
+var historyDeta = [];
+
+function saveData(data) {
+  historyDeta.length === 10 && historyDeta.shift(); // 上限为储存10步，太多了怕挂掉
+  historyDeta.push(data);
+}
+
+undo.onclick = function () {
+  if (historyDeta.length < 1) return false;
+  ctx.putImageData(historyDeta[historyDeta.length - 1], 0, 0);
+  historyDeta.pop();
+};
 },{}],"C:\\Users\\林新玮\\AppData\\Local\\Yarn\\Data\\global\\node_modules\\parcel\\src\\builtins\\hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
