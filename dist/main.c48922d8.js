@@ -104,7 +104,18 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   // Override the current require with this new one
   return newRequire;
 })({"main.js":[function(require,module,exports) {
-
+var canvas = document.getElementById("drawing-board");
+var ctx = canvas.getContext("2d");
+var eraser = document.getElementById("eraser");
+var brush = document.getElementById("brush");
+var reSetCanvas = document.getElementById("clear");
+var aColorBtn = document.getElementsByClassName("color-item");
+var save = document.getElementById("save");
+var undo = document.getElementById("undo");
+var range = document.getElementById("range");
+var clear = false;
+var activeColor = 'black';
+var lWidth = 4;
 },{}],"C:\\Users\\林新玮\\AppData\\Local\\Yarn\\Data\\global\\node_modules\\parcel\\src\\builtins\\hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -276,3 +287,4 @@ function hmrAccept(bundle, id) {
   });
 }
 },{}]},{},["C:\\Users\\林新玮\\AppData\\Local\\Yarn\\Data\\global\\node_modules\\parcel\\src\\builtins\\hmr-runtime.js","main.js"], null)
+//# sourceMappingURL=/main.c48922d8.map
